@@ -1,0 +1,3 @@
+Map Service API Keys:
+- OpenStreetMap: No API key required
+- MapTiler: [Your MapTiler API Key here]
