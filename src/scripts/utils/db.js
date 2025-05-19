@@ -3,6 +3,7 @@ import CONFIG from '../config/config.js';
 const DB_NAME = 'story-explorer-db';
 const DB_VERSION = 1;
 const STORE_NAME = 'stories';
+const OFFLINE_STORE = 'offline-stories';
 
 const openDB = () => {
     return new Promise((resolve, reject) => {
@@ -19,7 +20,12 @@ const openDB = () => {
         request.onupgradeneeded = (event) => {
             const db = event.target.result;
             if (!db.objectStoreNames.contains(STORE_NAME)) {
-                db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                const storyStore = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                storyStore.createIndex('createdAt', 'createdAt', { unique: false });
+            }
+            if (!db.objectStoreNames.contains(OFFLINE_STORE)) {
+                const offlineStore = db.createObjectStore(OFFLINE_STORE, { keyPath: 'id', autoIncrement: true });
+                offlineStore.createIndex('timestamp', 'timestamp', { unique: false });
             }
         };
     });
@@ -51,7 +57,10 @@ const StoryDB = {
 
             await Promise.all(stories.map(story => {
                 return new Promise((resolve, reject) => {
-                    const request = store.put(story);
+                    const request = store.put({
+                        ...story,
+                        timestamp: new Date().getTime()
+                    });
                     request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
@@ -61,6 +70,44 @@ const StoryDB = {
         } catch (error) {
             console.error('Error saving stories:', error);
             return false;
+        }
+    },
+
+    async saveOfflineStory(storyData) {
+        try {
+            const db = await openDB();
+            const transaction = db.transaction(OFFLINE_STORE, 'readwrite');
+            const store = transaction.objectStore(OFFLINE_STORE);
+
+            return new Promise((resolve, reject) => {
+                const request = store.add({
+                    ...storyData,
+                    timestamp: new Date().getTime(),
+                    synced: false
+                });
+                request.onsuccess = () => resolve(true);
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('Error saving offline story:', error);
+            return false;
+        }
+    },
+
+    async getOfflineStories() {
+        try {
+            const db = await openDB();
+            const transaction = db.transaction(OFFLINE_STORE, 'readonly');
+            const store = transaction.objectStore(OFFLINE_STORE);
+            
+            return new Promise((resolve, reject) => {
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('Error getting offline stories:', error);
+            return [];
         }
     },
 
@@ -77,6 +124,36 @@ const StoryDB = {
             });
         } catch (error) {
             console.error('Error deleting story:', error);
+            return false;
+        }
+    },
+
+    async clearOldStories(maxAge = 7 * 24 * 60 * 60 * 1000) { // 7 days
+        try {
+            const db = await openDB();
+            const transaction = db.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const index = store.index('createdAt');
+            const cutoffDate = new Date().getTime() - maxAge;
+
+            const request = index.openCursor();
+            
+            return new Promise((resolve, reject) => {
+                request.onsuccess = (event) => {
+                    const cursor = event.target.result;
+                    if (cursor) {
+                        if (cursor.value.timestamp < cutoffDate) {
+                            cursor.delete();
+                        }
+                        cursor.continue();
+                    } else {
+                        resolve(true);
+                    }
+                };
+                request.onerror = () => reject(request.error);
+            });
+        } catch (error) {
+            console.error('Error clearing old stories:', error);
             return false;
         }
     }

@@ -1,0 +1,157 @@
+.detail-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.loading-indicator {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.story-content {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.story-header {
+    padding: 2rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #eee;
+}
+
+.story-header h2 {
+    margin: 0 0 1rem;
+    color: #343a40;
+}
+
+.story-meta {
+    display: flex;
+    gap: 1.5rem;
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.location {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.story-media {
+    position: relative;
+    padding-top: 56.25%;
+    background: #f8f9fa;
+}
+
+.story-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.story-body {
+    padding: 2rem;
+    line-height: 1.6;
+    color: #495057;
+}
+
+.story-footer {
+    padding: 1.5rem 2rem;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.save-offline, .back-button {
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.save-offline {
+    background: #28a745;
+    color: white;
+}
+
+.back-button {
+    background: #6c757d;
+    color: white;
+}
+
+.save-offline:hover {
+    background: #218838;
+    transform: translateY(-2px);
+}
+
+.back-button:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.error-state {
+    text-align: center;
+    padding: 3rem;
+    color: #dc3545;
+}
+
+.error-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .detail-container {
+        margin: 1rem;
+    }
+
+    .story-header {
+        padding: 1.5rem;
+    }
+
+    .story-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .story-body {
+        padding: 1.5rem;
+    }
+
+    .story-footer {
+        flex-direction: column;
+    }
+
+    .save-offline, .back-button {
+        width: 100%;
+        justify-content: center;
+    }
+}

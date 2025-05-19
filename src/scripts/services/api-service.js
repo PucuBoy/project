@@ -93,7 +93,7 @@ class ApiService {
 
     static async subscribePushNotification(token, subscription) {
         try {
-            const response = await fetch(`${CONFIG.API_URL}/notifications/subscribe`, {
+            const response = await fetch(`${CONFIG.BASE_URL}/push`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -110,7 +110,7 @@ class ApiService {
 
     static async unsubscribePushNotification(token, endpoint) {
         try {
-            const response = await fetch(`${CONFIG.API_URL}/notifications/subscribe`, {
+            const response = await fetch(`${CONFIG.BASE_URL}/push`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -121,6 +121,67 @@ class ApiService {
             return await response.json();
         } catch (error) {
             console.error('Error unsubscribing from notifications:', error);
+            return { error: true, message: error.message };
+        }
+    }
+
+    static async syncOfflineStories(token, stories) {
+        try {
+            const results = await Promise.allSettled(
+                stories.map(story => this.addStory(token, story))
+            );
+            
+            return results.map((result, index) => ({
+                story: stories[index],
+                success: result.status === 'fulfilled',
+                response: result.status === 'fulfilled' ? result.value : result.reason
+            }));
+        } catch (error) {
+            console.error('Error syncing offline stories:', error);
+            return { error: true, message: error.message };
+        }
+    }
+
+    static async registerPushSubscription(token, subscription) {
+        try {
+            const response = await fetch(`${CONFIG.BASE_URL}/push-registration`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(subscription)
+            });
+            return await response.json();
+        } catch (error) {
+            console.error('Error registering push subscription:', error);
+            return { error: true, message: error.message };
+        }
+    }
+
+    static async checkConnectivity() {
+        try {
+            const response = await fetch(`${CONFIG.BASE_URL}/ping`, {
+                method: 'HEAD'
+            });
+            return response.ok;
+        } catch {
+            return false;
+        }
+    }
+
+    static async retryFailedUploads(token, failedUploads) {
+        try {
+            const results = await Promise.allSettled(
+                failedUploads.map(upload => this.addStory(token, upload.data))
+            );
+            return results.map((result, index) => ({
+                originalUpload: failedUploads[index],
+                success: result.status === 'fulfilled',
+                response: result.status === 'fulfilled' ? result.value : result.reason
+            }));
+        } catch (error) {
+            console.error('Error retrying failed uploads:', error);
             return { error: true, message: error.message };
         }
     }

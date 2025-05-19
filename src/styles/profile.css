@@ -1,0 +1,64 @@
+.profile-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.profile-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.profile-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.user-info, .notification-settings, .offline-settings {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.setting-item {
+    margin: 1rem 0;
+}
+
+.setting-description {
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.feedback-message {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 1rem;
+    border-radius: 4px;
+    color: white;
+    animation: slideIn 0.3s ease;
+}
+
+.feedback-message.success {
+    background: #4CAF50;
+}
+
+.feedback-message.error {
+    background: #f44336;
+}
+
+@media (max-width: 600px) {
+    .profile-container {
+        margin: 1rem;
+    }
+}

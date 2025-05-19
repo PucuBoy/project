@@ -1,0 +1,55 @@
+.notification-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px;
+    border-radius: 50%;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.notification-toggle.active {
+    background: #2E7D32;
+}
+
+.notification-toggle:hover {
+    transform: scale(1.05);
+}
+
+.notification-feedback {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 4px;
+    color: white;
+    z-index: 1001;
+    animation: slideIn 0.3s ease;
+}
+
+.notification-feedback.success {
+    background: #4CAF50;
+}
+
+.notification-feedback.error {
+    background: #f44336;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}

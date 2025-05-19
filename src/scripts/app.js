@@ -1,10 +1,14 @@
+import NotificationManager from './components/notification-manager.js';
 import routes from './routes.js';
 import Auth from './utils/auth.js';
-import Navigation from './utils/navigation.js';
 import ViewTransition from './utils/view-transition.js';
 
 class App {
     constructor() {
+        this._content = document.querySelector('#mainContent');
+        this._transition = new ViewTransition();
+        this._notificationManager = new NotificationManager();
+        this._currentPage = null;
         this._initialAppShell();
     }
 
@@ -48,7 +52,7 @@ class App {
             if (!mainContent) throw new Error('Main content element not found');
             
             await ViewTransition.start(async () => {
-                const pageModule = await routes[page];
+                const pageModule = await routes[page]();  // Add parentheses to call the function
                 if (!pageModule) {
                     throw new Error('Page not found');
                 }
@@ -57,18 +61,10 @@ class App {
                 const content = await view.render();
                 
                 mainContent.innerHTML = content;
-                
                 await view.afterRender();
-                
-                try {
-                    Navigation.updateNavigation();
-                } catch (error) {
-                    console.warn('Navigation update failed:', error);
-                }
             });
         } catch (error) {
             console.error('Error rendering page:', error);
-            window.location.hash = '#/home';
         }
     }
 
