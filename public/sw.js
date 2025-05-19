@@ -6,7 +6,7 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox
 // Single install event handler
 self.addEventListener('install', (event) => {
   console.log('Service Worker installing.');
-  const offlineFallbackPage = '/offline.html';
+  const offlineFallbackPage = './offline.html';
   event.waitUntil(
     caches.open(CACHE_VERSION + '-offline-cache').then((cache) => {
       return cache.add(offlineFallbackPage);
@@ -77,30 +77,37 @@ routing.registerRoute(
 );
 
 // Offline fallback
+// Add base URL detection
+const BASE_URL = self.location.pathname.replace('sw.js', '');
+
+// Update offline page paths
 self.addEventListener('install', (event) => {
-  const offlineFallbackPage = '/offline.html';
+  console.log('Service Worker installing.');
+  const offlineFallbackPage = `${BASE_URL}offline.html`;
   event.waitUntil(
-    caches.open('offline-cache').then((cache) => {
+    caches.open(CACHE_VERSION + '-offline-cache').then((cache) => {
       return cache.add(offlineFallbackPage);
     })
   );
 });
 
+// Update fetch handler
 self.addEventListener('fetch', (event) => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => {
-        return caches.match('/offline.html');
+        return caches.match(`${BASE_URL}offline.html`);
       })
     );
   }
 });
 
+// Update push notification paths
 self.addEventListener('push', (event) => {
   const options = {
     body: event.data.text(),
-    icon: '/icons/icon-192x192.png',
-    badge: '/icons/icon-72x72.png',
+    icon: `${BASE_URL}icons/icon-192x192.png`,
+    badge: `${BASE_URL}icons/icon-72x72.png`,
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),

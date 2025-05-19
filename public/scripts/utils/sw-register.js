@@ -5,15 +5,7 @@ const swRegister = async () => {
     }
 
     try {
-        const registration = await navigator.serviceWorker.register('/sw.js', {
-            updateViaCache: 'none'
-        });
-        
-        // Force update check
-        if (registration.active) {
-            registration.update();
-        }
-
+        const registration = await navigator.serviceWorker.register('./sw.js');
         console.log('Service worker registered');
 
         // Request notification permission
