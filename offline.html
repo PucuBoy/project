@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline Mode - Story Explorer</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/icons/icon-72x72.png">
+    <link rel="apple-touch-icon" href="/icons/icon.png">
+    
+
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #f8f9fa;
+            color: #343a40;
+        }
+
+        .offline-container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .offline-icon {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 1.5rem;
+        }
+
+        h1 {
+            margin: 0 0 1rem;
+            color: #343a40;
+        }
+
+        p {
+            margin: 0 0 1.5rem;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            transition: transform 0.2s ease;
+        }
+
+        .primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .offline-features {
+            margin-top: 2rem;
+            text-align: left;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            margin: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #28a745;
+        }
+
+        @media (max-width: 480px) {
+            .offline-container {
+                margin: 1rem;
+                padding: 1.5rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-container">
+        <img src="/icons/icon-192x192.png" alt="Offline Icon" class="offline-icon">
+        <h1>Anda Sedang Offline</h1>
+        <p>Tidak dapat terhubung ke internet. Beberapa fitur mungkin tidak tersedia.</p>
+        
+        <div class="action-buttons">
+            <button onclick="tryReconnect()" class="button primary">
+                Coba Lagi
+            </button>
+            <a href="/" class="button secondary">
+                Kembali ke Beranda
+            </a>
+        </div>
+
+        <div class="offline-features">
+            <h2>Fitur yang Tersedia Offline:</h2>
+            <ul class="feature-list">
+                <li>Melihat cerita yang tersimpan</li>
+                <li>Membuat cerita baru</li>
+                <li>Mengakses profil</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function tryReconnect() {
+            if (navigator.onLine) {
+                window.location.href = '/';
+            } else {
+                window.location.reload();
+            }
+        }
+
+        window.addEventListener('online', () => {
+            const notification = document.createElement('div');
+            notification.textContent = 'Koneksi tersedia! Mengalihkan...';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 1rem;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 2000);
+        });
+
+        window.addEventListener('offline', () => {
+            const notification = document.createElement('div');
+            notification.textContent = 'Koneksi terputus!';
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #dc3545;
+                color: white;
+                padding: 1rem;
+                border-radius: 4px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        });
+    </script>
+</body>
+</html>
