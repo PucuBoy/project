@@ -1,4 +1,4 @@
-import NotificationManager from './components/notification-manager.js';
+
 import routes from './routes.js';
 import Auth from './utils/auth.js';
 import ViewTransition from './utils/view-transition.js';
@@ -7,7 +7,7 @@ class App {
     constructor() {
         this._content = document.querySelector('#mainContent');
         this._transition = new ViewTransition();
-        this._notificationManager = new NotificationManager();
+        
         this._currentPage = null;
         this._initialAppShell();
     }

@@ -103,19 +103,30 @@ self.addEventListener('fetch', (event) => {
 });
 
 // Update push notification paths
-self.addEventListener('push', (event) => {
+self.addEventListener('push', function(event) {
   const options = {
-    body: event.data.text(),
-    icon: `${BASE_URL}icons/icon-192x192.png`,
-    badge: `${BASE_URL}icons/icon-72x72.png`,
-    vibrate: [100, 50, 100],
-    data: {
-      dateOfArrival: Date.now(),
-      primaryKey: 1
-    }
+      body: event.data.text(),
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-72x72.png',
+      vibrate: [100, 50, 100],
+      data: {
+          dateOfArrival: Date.now(),
+          primaryKey: 1
+      }
   };
 
   event.waitUntil(
-    self.registration.showNotification('Story Explorer', options)
+      Promise.all([
+          self.registration.showNotification('Story Explorer', options),
+          // Notify client about new story
+          self.clients.matchAll().then(clients => {
+              clients.forEach(client => {
+                  client.postMessage({
+                      type: 'STORY_CREATED',
+                      payload: event.data.text()
+                  });
+              });
+          })
+      ])
   );
 });

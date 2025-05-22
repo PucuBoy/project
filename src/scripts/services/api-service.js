@@ -93,13 +93,19 @@ class ApiService {
 
     static async subscribePushNotification(token, subscription) {
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}/push`, {
+            const response = await fetch(`${CONFIG.BASE_URL}/notifications/subscribe`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(subscription)
+                body: JSON.stringify({
+                    endpoint: subscription.endpoint,
+                    keys: {
+                        p256dh: subscription.keys.p256dh,
+                        auth: subscription.keys.auth
+                    }
+                })
             });
             return await response.json();
         } catch (error) {
@@ -110,7 +116,7 @@ class ApiService {
 
     static async unsubscribePushNotification(token, endpoint) {
         try {
-            const response = await fetch(`${CONFIG.BASE_URL}/push`, {
+            const response = await fetch(`${CONFIG.BASE_URL}/notifications/subscribe`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`,

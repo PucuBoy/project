@@ -3,6 +3,7 @@ import HomePresenter from '../presenters/home-presenter.js';
 import ApiService from '../services/api-service.js';
 import Auth from '../utils/auth.js';
 import CONFIG from '../config/config.js';
+import NotificationManager from '../components/notification-manager.js';
 
 class HomeView {
     constructor() {
@@ -10,6 +11,7 @@ class HomeView {
         this._presenter = new HomePresenter(this, this._model);
         this._map = null;
         this._markers = [];
+        this._notificationManager = null;
     }
 
     async render() {
@@ -48,6 +50,16 @@ class HomeView {
             await this._initializeMap();
             this._initializeEventListeners();
             await this._presenter.loadInitialStories();
+            
+            // Initialize notification manager only once
+            if (!this._notificationManager) {
+                this._notificationManager = new NotificationManager();
+            }
+
+            // Listen for new story notifications
+            window.addEventListener('story-created', async () => {
+                await this._presenter.loadInitialStories();
+            });
         } catch (error) {
             console.error('Error in afterRender:', error);
             alert('Terjadi kesalahan saat memuat halaman');
@@ -207,6 +219,12 @@ class HomeView {
         if (this._map) {
             this._map.remove();
             this._map = null;
+        }
+
+        // Cleanup notification manager
+        if (this._notificationManager) {
+            this._notificationManager.cleanup();
+            this._notificationManager = null;
         }
     }
 }
