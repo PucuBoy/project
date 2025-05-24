@@ -40,7 +40,10 @@ class OfflineStoriesView {
 
         container.innerHTML = stories.map(story => `
             <article class="story-item" data-id="${story.id}">
-                <img src="${story.photoUrl}" alt="${story.description}" loading="lazy">
+                <img src="${story.photoUrl}" 
+                     alt="${story.description}" 
+                     loading="lazy"
+                     onerror="this.src='/images/placeholder.jpg'; this.onerror=null;">
                 <div class="story-content">
                     <h3>${story.name}</h3>
                     <p>${story.description}</p>

@@ -1,6 +1,7 @@
 import StoryModel from '../models/story-model.js';
 import HomePresenter from '../presenters/home-presenter.js';
 import ApiService from '../services/api-service.js';
+import DBService from '../services/db-service.js';  // Add this line
 import Auth from '../utils/auth.js';
 import CONFIG from '../config/config.js';
 import NotificationManager from '../components/notification-manager.js';
@@ -23,6 +24,9 @@ class HomeView {
                         <button id="logoutBtn" class="nav-link" aria-label="Logout">
                             <i class="fas fa-sign-out-alt"></i> Logout
                         </button>
+                        <a href="#/favorites" class="nav-link favorite-link" aria-label="View favorite stories">
+                            <i class="fas fa-heart"></i>
+                        </a>
                     </nav>
                 </header>
                 
@@ -155,11 +159,43 @@ class HomeView {
                 <time datetime="${story.createdAt}" aria-label="Posted on">
                     ${new Date(story.createdAt).toLocaleDateString('id-ID')}
                 </time>
+                <button class="favorite-btn" data-id="${story.id}" aria-label="Add to favorites">
+                    <i class="far fa-heart"></i>
+                </button>
             </div>
         `;
 
-        article.addEventListener('click', () => this._handleStoryClick(article));
+        const favoriteBtn = article.querySelector('.favorite-btn');
+        this._initializeFavoriteButton(favoriteBtn, story);
+
+        article.addEventListener('click', (e) => {
+            if (!e.target.closest('.favorite-btn')) {
+                this._handleStoryClick(article);
+            }
+        });
+
         return article;
+    }
+
+    async _initializeFavoriteButton(button, story) {
+        const isFavorite = await DBService.isFavorite(story.id);
+        if (isFavorite) {
+            button.classList.add('active');
+            button.querySelector('i').classList.replace('far', 'fas');
+        }
+
+        button.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (button.classList.contains('active')) {
+                await DBService.removeFromFavorites(story.id);
+                button.classList.remove('active');
+                button.querySelector('i').classList.replace('fas', 'far');
+            } else {
+                await DBService.addToFavorites(story);
+                button.classList.add('active');
+                button.querySelector('i').classList.replace('far', 'fas');
+            }
+        });
     }
 
     _handleStoryClick(article) {

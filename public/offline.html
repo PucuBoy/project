@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offline Mode - Story Explorer</title>
     <link rel="manifest" href="/manifest.json">
-    <link rel="icon" href="/icons/icon-72x72.png">
     <link rel="apple-touch-icon" href="/icons/icon.png">
     
 
@@ -123,7 +122,10 @@
 </head>
 <body>
     <div class="offline-container">
-        <img src="/icons/icon-192x192.png" alt="Offline Icon" class="offline-icon">
+        <img src="/icons/icon-192x192.png" 
+             alt="Offline Icon" 
+             class="offline-icon"
+             onerror="this.onerror=null; this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImN1cnJlbnRDb2xvciIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0xNy43MyAxMi03LjcyNyAxMi0xMiAxNi43MjctMTIgNy4yNzMgMTYuNzI3IDcuMjczIDEyIDEyeiI+PC9wYXRoPjwvc3ZnPg==';">
         <h1>Anda Sedang Offline</h1>
         <p>Tidak dapat terhubung ke internet. Beberapa fitur mungkin tidak tersedia.</p>
         
@@ -131,9 +133,12 @@
             <button onclick="tryReconnect()" class="button primary">
                 Coba Lagi
             </button>
-            <a href="/" class="button secondary">
+            <button onclick="viewSavedStories()" class="button secondary">
+                Lihat Cerita Tersimpan
+            </button>
+            <button onclick="goHome()" class="button secondary">
                 Kembali ke Beranda
-            </a>
+            </button>
         </div>
 
         <div class="offline-features">
@@ -149,10 +154,18 @@
     <script>
         function tryReconnect() {
             if (navigator.onLine) {
-                window.location.href = '/';
+                window.location.hash = '#/home';
             } else {
                 window.location.reload();
             }
+        }
+
+        function viewSavedStories() {
+            window.location.hash = '#/offline';
+        }
+
+        function goHome() {
+            window.location.hash = '#/home';
         }
 
         window.addEventListener('online', () => {

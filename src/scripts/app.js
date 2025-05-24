@@ -51,20 +51,29 @@ class App {
             const mainContent = document.querySelector('#mainContent');
             if (!mainContent) throw new Error('Main content element not found');
             
-            await ViewTransition.start(async () => {
-                const pageModule = await routes[page]();  // Add parentheses to call the function
-                if (!pageModule) {
-                    throw new Error('Page not found');
+            // Handle offline state
+            if (!navigator.onLine) {
+                if (page === '/offline') {
+                    const { default: OfflineView } = await routes['/offline']();
+                    const view = new OfflineView();
+                    mainContent.innerHTML = await view.render();
+                    await view.afterRender();
+                    return;
                 }
+                // Redirect to offline page for other routes when offline
+                window.location.hash = '#/offline';
+                return;
+            }
 
-                const view = new pageModule.default();
-                const content = await view.render();
-                
-                mainContent.innerHTML = content;
-                await view.afterRender();
-            });
+            const pageModule = await routes[page]();
+            const view = new pageModule.default();
+            mainContent.innerHTML = await view.render();
+            await view.afterRender();
         } catch (error) {
             console.error('Error rendering page:', error);
+            if (!navigator.onLine) {
+                window.location.hash = '#/offline';
+            }
         }
     }
 

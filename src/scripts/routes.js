@@ -8,6 +8,7 @@ const routes = {
     '/offline': () => import('./views/offline-view.js'),
     '/404': () => import('./views/not-found-view.js'),
     '/story/:id': () => import('./views/detail-view.js'),
+    '/favorites': () => import('./views/pages/favorites.js'),
 };
 
 export default routes;

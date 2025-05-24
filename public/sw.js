@@ -1,132 +1,98 @@
-// First, add version for cache management
-const CACHE_VERSION = 'v1';
+const CACHE_NAME = 'story-explorer-v1';
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.4.1/workbox-sw.js');
+const assetsToCache = [
+  '/',
+  '/index.html',
+  '/offline.html',
+  '/manifest.json',
+  '/icons/icon-72x72.png',
+  '/icons/icon-144x144.png',
+  '/icons/icon-192x192.png',
+  '/icons/icon.png',
+  '/styles/pwa.css',
+  '/app.bundle.js',
+  '/scripts/utils/sw-register.js',
+  '/src/scripts/views/offline-view.js'
+];
 
-// Single install event handler
 self.addEventListener('install', (event) => {
-  console.log('Service Worker installing.');
-  const offlineFallbackPage = './offline.html';
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_VERSION + '-offline-cache').then((cache) => {
-      return cache.add(offlineFallbackPage);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        return Promise.all(
+          assetsToCache.map(url => {
+            return cache.add(url).catch(err => {
+              console.warn('Failed to cache:', url);
+              return Promise.resolve();
+            });
+          })
+        );
+      })
   );
 });
 
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker activating.');
-  // Clean up old caches
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName.startsWith(CACHE_VERSION)) {
-            return null;
-          }
-          return caches.delete(cacheName);
-        })
+        cacheNames
+          .filter((cacheName) => cacheName !== CACHE_NAME)
+          .map((cacheName) => caches.delete(cacheName))
       );
     })
   );
 });
 
-workbox.setConfig({
-  debug: false
-});
-
-const { strategies, routing, precaching, cacheableResponse, expiration } = workbox;
-
-// Cache Google Fonts
-routing.registerRoute(
-  ({url}) => url.origin === 'https://fonts.googleapis.com' ||
-             url.origin === 'https://fonts.gstatic.com',
-  new strategies.StaleWhileRevalidate({
-    cacheName: 'google-fonts',
-  })
-);
-
-// Cache images
-routing.registerRoute(
-  ({request}) => request.destination === 'image',
-  new strategies.CacheFirst({
-    cacheName: 'images',
-    plugins: [
-      new cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-      new expiration.ExpirationPlugin({
-        maxEntries: 60,
-        maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
-      }),
-    ],
-  })
-);
-
-// Cache API responses
-routing.registerRoute(
-  ({url}) => url.origin === 'https://story-api.dicoding.dev',
-  new strategies.StaleWhileRevalidate({
-    cacheName: 'api-cache',
-    plugins: [
-      new cacheableResponse.CacheableResponsePlugin({
-        statuses: [0, 200],
-      }),
-    ],
-  })
-);
-
-// Offline fallback
-// Add base URL detection
-const BASE_URL = self.location.pathname.replace('sw.js', '');
-
-// Update offline page paths
-self.addEventListener('install', (event) => {
-  console.log('Service Worker installing.');
-  const offlineFallbackPage = `${BASE_URL}offline.html`;
-  event.waitUntil(
-    caches.open(CACHE_VERSION + '-offline-cache').then((cache) => {
-      return cache.add(offlineFallbackPage);
-    })
-  );
-});
-
-// Update fetch handler
 self.addEventListener('fetch', (event) => {
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(`${BASE_URL}offline.html`);
-      })
-    );
+  // Skip WebSocket connections
+  if (event.request.url.includes('/ws')) {
+    return;
   }
-});
 
-// Update push notification paths
-self.addEventListener('push', function(event) {
-  const options = {
-      body: event.data.text(),
-      icon: '/icons/icon-192x192.png',
-      badge: '/icons/icon-72x72.png',
-      vibrate: [100, 50, 100],
-      data: {
-          dateOfArrival: Date.now(),
-          primaryKey: 1
-      }
-  };
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        if (response) {
+          return response;
+        }
 
-  event.waitUntil(
-      Promise.all([
-          self.registration.showNotification('Story Explorer', options),
-          // Notify client about new story
-          self.clients.matchAll().then(clients => {
-              clients.forEach(client => {
-                  client.postMessage({
-                      type: 'STORY_CREATED',
-                      payload: event.data.text()
-                  });
+        const fetchRequest = event.request.clone();
+
+        return fetch(fetchRequest)
+          .then((response) => {
+            // Don't cache websocket or non-GET requests
+            if (response.type === 'opaque' || event.request.method !== 'GET') {
+              return response;
+            }
+
+            // Don't cache errors
+            if (!response || response.status !== 200) {
+              return response;
+            }
+
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => {
+                cache.put(event.request, responseToCache);
               });
+
+            return response;
           })
-      ])
+          .catch(() => {
+            // Handle webpack chunks
+            if (event.request.url.includes('.app.bundle.js')) {
+              return new Response(null, { status: 404 });
+            }
+            
+            if (event.request.destination === 'image') {
+              return caches.match('/icons/icon.png');
+            }
+            if (event.request.mode === 'navigate') {
+              return caches.match('/offline.html');
+            }
+            return new Response(null, { status: 404 });
+          });
+      })
   );
 });
