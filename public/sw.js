@@ -1,4 +1,4 @@
-const CACHE_NAME = 'story-explorer-v1';
+const CACHE_NAME = 'story-explorer-v2';
 
 const assetsToCache = [
   '/',
@@ -11,8 +11,7 @@ const assetsToCache = [
   '/icons/icon.png',
   '/styles/pwa.css',
   '/app.bundle.js',
-  '/scripts/utils/sw-register.js',
-  '/src/scripts/views/offline-view.js'
+  '/scripts/utils/sw-register.js'
 ];
 
 self.addEventListener('install', (event) => {
@@ -20,27 +19,30 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        return Promise.all(
-          assetsToCache.map(url => {
-            return cache.add(url).catch(err => {
-              console.warn('Failed to cache:', url);
-              return Promise.resolve();
-            });
-          })
-        );
+        return cache.addAll(assetsToCache)
+          .catch(err => {
+            console.warn('Some assets failed to cache:', err);
+            // Continue despite errors
+            return Promise.resolve();
+          });
       })
   );
 });
 
 self.addEventListener('activate', (event) => {
+  // Take control of all pages immediately
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((cacheName) => cacheName !== CACHE_NAME)
-          .map((cacheName) => caches.delete(cacheName))
-      );
-    })
+    Promise.all([
+      self.clients.claim(),
+      // Clean old caches
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames
+            .filter((cacheName) => cacheName !== CACHE_NAME)
+            .map((cacheName) => caches.delete(cacheName))
+        );
+      })
+    ])
   );
 });
 
